@@ -51,3 +51,16 @@ variable "location" {
   default     = "eastus"
 }
 
+variable "docker_server" {
+}
+
+variable "docker_username" {
+}
+
+variable "docker_password" {
+}
+
+variable "docker_email" {
+}
+
+

@@ -24,6 +24,47 @@ resource "random_integer" "random_int" {
     max = 999
 }
 
+locals {
+  dockercfg = {
+    "${var.docker_server}" = {
+      email    = "${var.docker_email}"
+      username = "${var.docker_username}"
+      password = "${var.docker_password}"
+    }
+  }
+}
+
+# create k8s secret for acr to use
+resource "kubernetes_secret" "acr-secret" {
+  "metadata" {
+    name = "acr-secret"
+  }
+
+  data {
+    ".dockercfg" = "${ jsonencode(local.dockercfg) }"
+  }
+  
+  type = "kubernetes.io/dockercfg"
+}
+
+# deploy example container from acr 
+resource "kubernetes_pod" "acr_example" {
+  metadata {
+    name = "aks-acr-example"
+  }
+
+  spec {
+    image_pull_secrets = {
+      name = "acr-secret"
+    }
+    
+    container {
+      name  = "azure-vote-front"
+      image = "agtechsummit.azurecr.io/azure-vote-front:v1"
+    }
+  }
+}
+
 # ********************** Kubernetes Resource Group ************************** #
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group}${random_integer.random_int.result}"
